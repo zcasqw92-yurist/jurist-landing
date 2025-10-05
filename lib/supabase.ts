@@ -1,23 +1,33 @@
 import { createClient } from '@supabase/supabase-js';
 
-/**
- * Создаём клиент ТОЛЬКО при обращении из кода (ленивая инициализация),
- * чтобы сборка не падала, если ENV ещё не заданы.
- */
+function required(name: string) {
+  const v = process.env[name];
+  return v && v.trim().length ? v : undefined;
+}
+
+function getUrl() {
+  // принимает и NEXT_PUBLIC_SUPABASE_URL, и SUPABASE_URL
+  return required('NEXT_PUBLIC_SUPABASE_URL') ?? required('SUPABASE_URL');
+}
+
 export function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = getUrl();
+  const anon = required('NEXT_PUBLIC_SUPABASE_ANON_KEY') ?? required('SUPABASE_ANON_KEY');
   if (!url || !anon) {
-    throw new Error('Supabase env is missing: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    throw new Error(
+      `Supabase client env missing: need NEXT_PUBLIC_SUPABASE_URL (или SUPABASE_URL) и NEXT_PUBLIC_SUPABASE_ANON_KEY (или SUPABASE_ANON_KEY)`
+    );
   }
   return createClient(url, anon);
 }
 
 export function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const url = getUrl();
+  const serviceRole = required('SUPABASE_SERVICE_ROLE_KEY');
   if (!url || !serviceRole) {
-    throw new Error('Supabase admin env is missing: set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY');
+    throw new Error(
+      `Supabase admin env missing: нужно NEXT_PUBLIC_SUPABASE_URL (или SUPABASE_URL) + SUPABASE_SERVICE_ROLE_KEY`
+    );
   }
   return createClient(url, serviceRole);
 }
