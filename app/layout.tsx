@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import SiteHeader from '@/components/SiteHeader';
+import SiteFooter from '@/components/SiteFooter';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://example.com';
 
@@ -46,7 +48,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
       <body className="min-h-dvh">
+        <SiteHeader />
         {children}
+        <SiteFooter />
       </body>
     </html>
   );

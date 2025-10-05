@@ -9,7 +9,7 @@ type Form = {
   website?: string; // honeypot
 };
 
-export default function LeadForm() {
+export default function LeadForm({ compact = false }: { compact?: boolean }) {
   const [form, setForm] = useState<Form>({ name: '', phone: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
@@ -50,8 +50,8 @@ export default function LeadForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div className="grid md:grid-cols-2 gap-4">
+    <form onSubmit={onSubmit} className={compact ? 'space-y-3' : 'space-y-4'}>
+      <div className={compact ? 'grid grid-cols-1 gap-3' : 'grid md:grid-cols-2 gap-4'}>
         <div>
           <label className="label">Имя *</label>
           <input className="input" value={form.name}
@@ -82,7 +82,7 @@ export default function LeadForm() {
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <button className="btn w-full" disabled={loading}>
+      <button className={compact ? 'btn btn-primary w-full' : 'btn btn-primary w-full'} disabled={loading}>
         {loading ? 'Отправляем…' : 'Отправить заявку'}
       </button>
       <p className="text-xs text-gray-500">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.</p>
