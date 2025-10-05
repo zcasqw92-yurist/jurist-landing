@@ -54,9 +54,10 @@ export default function LeadForm() {
         value={comment}
         onChange={(e) => setComment(e.target.value)}
       />
-      <button type="submit" disabled={loading} className="px-4 py-2 rounded bg-black text-white">
-        {loading ? 'Отправляем…' : 'Разобрать мой случай'}
-      </button>
+      <button type="submit" disabled={loading}
+  className="w-full rounded-md bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 transition">
+  {loading ? 'Отправляем…' : 'Отправить'}
+</button>
       {msg && (
         <p className={msg.startsWith('Ошибка') ? 'text-red-600' : 'text-green-600'}>
           {msg}
