@@ -1,20 +1,36 @@
-// components/Hero.tsx
 import Image from "next/image";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export const dynamic = 'force-dynamic'; // обновление мнгновенно (ISR)
+export const dynamic = 'force-dynamic';
 
 export default async function Hero() {
-  const supabase = getSupabaseAdmin();
-  const { data } = await supabase.from("settings").select("value").eq("key", "hero").single();
-  const hero = data?.value ?? {};
+  let hero: any = {};
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "hero")
+      .single();
+
+    if (error) throw error;
+    hero = data?.value ?? {};
+  } catch (e: any) {
+    console.error("Hero load error:", e?.message || e);
+    // Не бросаем ошибку — просто используем дефолтный текст
+    hero = {};
+  }
 
   return (
     <section className="section">
       <div className="container grid md:grid-cols-2 gap-8 items-center">
         <div>
-          <div className="text-sm text-gray-500 mb-3">{hero.badge ?? "Юрист · СПб · досудебные документы"}</div>
-          <h1 className="h1">{hero.title ?? "Юрист в Санкт-Петербурге — досудебные претензии, жалобы, иски"}</h1>
+          <div className="text-sm text-gray-500 mb-3">
+            {hero.badge ?? "Юрист · СПб · досудебные документы"}
+          </div>
+          <h1 className="h1">
+            {hero.title ?? "Юрист в Санкт-Петербурге — досудебные претензии, жалобы, иски"}
+          </h1>
           <p className="subtitle mt-4">
             {hero.subtitle ?? "Разберу ваш случай и укажу верные шаги: без лишних походов в суд."}
           </p>
