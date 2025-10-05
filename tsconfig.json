@@ -2,7 +2,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": { "@/*": ["*"] },
-
+    "strict": true,
+    "skipLibCheck": true,
     "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "bundler",

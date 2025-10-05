@@ -1,34 +1,33 @@
-// app/api/leads/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "../../../lib/supabase";
+import { NextResponse } from 'next/server';
+import { supabaseAdmin } from '@/lib/supabase';
 
-export const runtime = "nodejs"; // service_role работает только в Node runtime
+export async function POST(req: Request) {
+  try {
+    const body = await req.json();
+    const { name, phone, email, message, source, website } = body || {};
 
-type Payload = { name?: string; phone?: string; comment?: string };
+    // Honeypot
+    if (website) {
+      return NextResponse.json({ ok: true }); // silently ignore
+    }
 
-function take(s: unknown, max = 500) {
-  return typeof s === "string" ? s.trim().slice(0, max) : "";
-}
+    if (!name || !(phone || email)) {
+      return NextResponse.json({ ok: false, error: 'Имя и телефон/email обязательны' }, { status: 400 });
+    }
 
-export async function POST(req: NextRequest) {
-  let body: Payload = {};
-  try { body = await req.json(); } catch {}
+    const userAgent = req.headers.get('user-agent') ?? null;
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
 
-  const name = take(body.name);
-  const phone = take(body.phone);
-  const comment = take(body.comment, 2000);
+    const { error } = await supabaseAdmin
+      .from('leads')
+      .insert([{ name, phone, email, message, source, user_agent: userAgent, ip }]);
 
-  if (!name || !phone) {
-    return NextResponse.json({ ok: false, error: "Укажите имя и телефон" }, { status: 400 });
+    if (error) {
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: e?.message ?? 'Unknown error' }, { status: 500 });
   }
-
-  const { error } = await supabaseServer
-    .from("leads")
-    .insert({ name, phone, comment });
-
-  if (error) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ ok: true });
 }

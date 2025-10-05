@@ -1,2 +1,0 @@
-# jurist-landing-fixed
-
