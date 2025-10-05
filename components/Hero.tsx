@@ -1,36 +1,38 @@
-import Image from 'next/image';
-import { loadSettings, type HeroSettings } from '@/lib/settings';
+// components/Hero.tsx
+import Image from "next/image";
+import { getSupabaseAdmin } from "@/lib/supabase";
 
-// Раз в 60 секунд страница может пересобираться со свежими данными из БД
-export const revalidate = 300; // ISR. Если хочешь всегда свежие — см. ниже вариант с dynamic.
+export const revalidate = 300; // обновление каждые 300 секунд (ISR)
 
 export default async function Hero() {
-  // 1) Грузим hero-настройки
-  const hero = (await loadSettings<HeroSettings>('hero')) ?? {};
-
-  // 2) Фоллбэки на случай, если ключа ещё нет
-  const badge = hero.badge ?? 'Юрист · СПб · досудебные документы';
-  const title = hero.title ?? 'Юрист в Санкт-Петербурге — досудебные претензии, жалобы, иски';
-  const subtitle = hero.subtitle ?? 'Разберу ваш случай и укажу верные шаги...';
-  const ctaPrimary = hero.ctaPrimary ?? 'Разобрать мой случай';
-  const ctaSecondary = hero.ctaSecondary ?? 'Список услуг';
+  const supabase = getSupabaseAdmin();
+  const { data } = await supabase.from("settings").select("value").eq("key", "hero").single();
+  const hero = data?.value ?? {};
 
   return (
     <section className="section">
       <div className="container grid md:grid-cols-2 gap-8 items-center">
         <div>
-          <div className="text-sm text-gray-500 mb-3">{badge}</div>
-          <h1 className="h1">{title}</h1>
-          <p className="subtitle mt-4">{subtitle}</p>
+          <div className="text-sm text-gray-500 mb-3">{hero.badge ?? "Юрист · СПб · досудебные документы"}</div>
+          <h1 className="h1">{hero.title ?? "Юрист в Санкт-Петербурге — досудебные претензии, жалобы, иски"}</h1>
+          <p className="subtitle mt-4">
+            {hero.subtitle ?? "Разберу ваш случай и укажу верные шаги: без лишних походов в суд."}
+          </p>
           <div className="flex flex-wrap gap-3 mt-6">
-            <a href="#lead" className="btn btn-primary">{ctaPrimary}</a>
-            <a href="#services" className="btn btn-ghost">{ctaSecondary}</a>
+            <a href="#lead" className="btn btn-primary">
+              {hero.ctaPrimary ?? "Разобрать мой случай"}
+            </a>
+            <a href="#services" className="btn btn-ghost">
+              {hero.ctaSecondary ?? "Список услуг"}
+            </a>
           </div>
         </div>
 
         <figure className="card p-2">
           <div className="relative">
-            <span className="absolute right-3 top-3 z-10 text-xs bg-white/90 border border-gray-200 px-2 py-1 rounded-full">20+ кейсов</span>
+            <span className="absolute right-3 top-3 z-10 text-xs bg-white/90 border border-gray-200 px-2 py-1 rounded-full">
+              20+ кейсов
+            </span>
             <Image
               src="/hero.jpg"
               alt="Досудебные претензии и возврат денег — СПб"
