@@ -15,18 +15,13 @@ export const metadata: Metadata = {
     description: "Живой, практичный подход без воды. Разбор случая бесплатно.",
     images: ["/og-image.png"],
   },
-  twitter: {
-    card: "summary_large_image",
-    images: ["/og-image.png"],
-  },
+  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" className="h-full scroll-smooth">
-      <body className="min-h-full bg-white text-gray-900 antialiased">
-        {children}
-      </body>
+      <body className="min-h-full bg-white text-gray-900 antialiased">{children}</body>
     </html>
   );
 }

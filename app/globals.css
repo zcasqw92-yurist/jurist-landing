@@ -2,11 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Optional light reset */
+/* Лёгкий reset и аккуратные базовые настройки */
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 :root { color-scheme: light; }
-
-/* Typography tweaks */
 body { line-height: 1.6; }
-h1,h2,h3,h4 { line-height: 1.2; }
+h1, h2, h3, h4 { line-height: 1.2; }
