@@ -1,24 +1,13 @@
 // lib/seo.ts
 import type { Metadata } from "next";
 
-// Базовые тексты для сайта
+// Базовые тексты (правь под себя)
 export const siteTitle = "Досудебные претензии и возврат денег — СПб";
 export const siteDescription =
   "Живой, практичный подход без воды. Разбор случая бесплатно. Досудебные претензии, жалобы, возврат денег — Санкт-Петербург и ЛО.";
 export const siteOgImage = "/og-image.png";
 
-// Универсальный объект SEO (часто удобно импортировать целиком)
-export const seo = {
-  title: siteTitle,
-  description: siteDescription,
-  ogImage: siteOgImage,
-};
-
-// На всякий случай экспортируем под несколькими именами,
-// чтобы не упасть, если где-то ждали другое имя.
-export const meta = seo;
-
-// Хелпер для Next Metadata (можно вызвать в layout/page при желании)
+// Хелпер для Next Metadata (опционально, удобно дергать в layout.tsx)
 export function buildMetadata(baseUrl?: string): Metadata {
   const metadataBase = baseUrl ? new URL(baseUrl.replace(/\/+$/, "")) : undefined;
   return {
@@ -40,4 +29,11 @@ export function buildMetadata(baseUrl?: string): Metadata {
   };
 }
 
+// ✅ ИМЕНОВАННЫЙ экспорт jsonLd — именно его ждёт app/page.tsx
+export function jsonLd<T extends object>(data: T) {
+  return { __html: JSON.stringify(data) };
+}
+
+// На всякий случай — дефолтный экспорт (можешь не использовать)
+const seo = { siteTitle, siteDescription, siteOgImage };
 export default seo;
