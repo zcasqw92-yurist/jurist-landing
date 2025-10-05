@@ -1,31 +1,46 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-// Ленивая инициализация, без кэша fetch
-export function getSupabaseAdmin() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  if (!url || !serviceRole) throw new Error('Supabase admin env is missing');
+function env(k: string) { return process.env[k]?.trim(); }
 
-  // ВАЖНО: cache: 'no-store' — запрет кэширования ответов
-  const client = createClient(url, serviceRole, {
-    global: {
-      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
-    },
+function getUrl() {
+  return env('NEXT_PUBLIC_SUPABASE_URL') ?? env('SUPABASE_URL') ?? '';
+}
+function getAnon() {
+  return env('NEXT_PUBLIC_SUPABASE_ANON_KEY') ?? env('SUPABASE_ANON_KEY') ?? '';
+}
+function getService() {
+  return env('SUPABASE_SERVICE_ROLE_KEY') ?? env('SUPABASE_SERVICE_ROLE') ?? '';
+}
+
+function makeClient(url: string, key: string): SupabaseClient {
+  return createClient(url, key, {
+    global: { fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }) },
   });
+}
 
-  return client;
+let _admin: SupabaseClient | null = null;
+let _client: SupabaseClient | null = null;
+
+export function getSupabaseAdmin() {
+  const url = getUrl();
+  const service = getService();
+  if (!url || !service) {
+    throw new Error(
+      `Supabase admin env is missing: url=${Boolean(url)}, service=${Boolean(service)}`
+    );
+  }
+  _admin ??= makeClient(url, service);
+  return _admin;
 }
 
 export function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-  if (!url || !anon) throw new Error('Supabase client env is missing');
-
-  const client = createClient(url, anon, {
-    global: {
-      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
-    },
-  });
-
-  return client;
+  const url = getUrl();
+  const anon = getAnon();
+  if (!url || !anon) {
+    throw new Error(
+      `Supabase client env is missing: url=${Boolean(url)}, anon=${Boolean(anon)}`
+    );
+  }
+  _client ??= makeClient(url, anon);
+  return _client;
 }
