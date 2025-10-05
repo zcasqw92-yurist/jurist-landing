@@ -5,8 +5,10 @@ import Footer from '@/components/Footer'
 import ConsentBanner from '@/components/Consent'
 
 const siteName = 'Юрист СПб — досудебные претензии, жалобы, иски'
-const siteDescription = 'Помогу вернуть деньги и защитить права: досудебные претензии, жалобы в госорганы, исковые заявления. Работаю по СПб и Ленобласти. Быстро, по закону, без лишних нервов.'
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+const siteDescription =
+  'Помогу вернуть деньги и защитить права: досудебные претензии, жалобы в госорганы, исковые заявления. Работаю по СПб и Ленобласти. Быстро, по закону, без лишних нервов.'
+const siteUrl =
+  (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/$/, '')
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -20,9 +22,15 @@ export const metadata: Metadata = {
     siteName,
     title: siteName,
     description: siteDescription,
-    images: ['/og-image.png'],
+    images: [`${siteUrl}/og-image.png`],
     url: siteUrl,
-    locale: 'ru_RU'
+    locale: 'ru_RU',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteName,
+    description: siteDescription,
+    images: [`${siteUrl}/og-image.png`],
   },
   alternates: {
     canonical: siteUrl,
@@ -30,17 +38,18 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
   applicationName: 'Юрист СПб',
   authors: [{ name: 'Юрист СПб' }],
-  verification: {
-    // place for yandex/google site verification meta via env if needed
-  }
 }
 
-export default function RootLayout({children}:{children: React.ReactNode}){
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
     <html lang="ru">
-      <body>
+      <body className="min-h-screen flex flex-col">
         <Header />
-        <main>{children}</main>
+        <main className="flex-grow">{children}</main>
         <Footer />
         <ConsentBanner />
       </body>
