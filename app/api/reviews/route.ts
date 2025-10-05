@@ -4,39 +4,41 @@ import { getSupabaseAdmin } from '@/lib/supabase';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+// Список опубликованных
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
-  const limit = Number(searchParams.get('limit') ?? '12');
+  const limit = Math.min(Math.max(Number(searchParams.get('limit') ?? '12'), 1), 50);
 
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('reviews')
-    .select('author, text, rating, created_at')
+    .select('id, author, text, rating, created_at')
+    .eq('is_published', true)
     .order('created_at', { ascending: false })
-    .limit(Math.min(Math.max(limit, 1), 50));
+    .limit(limit);
 
   if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true, reviews: data });
 }
 
+// Создание отзыва: уходит на модерацию
 export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { author, text, rating, website } = body || {};
 
-    // honeypot
-    if (website) return NextResponse.json({ ok: true });
-
+    if (website) return NextResponse.json({ ok: true }); // honeypot
     if (!author || !text) {
       return NextResponse.json({ ok: false, error: 'Заполните имя и текст отзыва' }, { status: 400 });
     }
+
     const r = Number(rating ?? 5);
     const safeRating = Number.isFinite(r) ? Math.min(5, Math.max(1, Math.round(r))) : 5;
 
     const supabase = getSupabaseAdmin();
     const { error } = await supabase
       .from('reviews')
-      .insert([{ author, text, rating: safeRating }]);
+      .insert([{ author, text, rating: safeRating, is_published: false }]); // ← на модерацию
 
     if (error) return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
     return NextResponse.json({ ok: true });
