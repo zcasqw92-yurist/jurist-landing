@@ -23,3 +23,8 @@
     "@types/node": "20.14.12"
   }
 }
+{
+  "dependencies": {
+    "@supabase/supabase-js": "^2.47.8"
+  }
+}
