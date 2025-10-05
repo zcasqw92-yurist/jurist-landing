@@ -39,7 +39,11 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    '/admin',
     '/admin/:path*',
-    '/api/admin/(?!session).*', // 👈 исключаем /api/admin/session
+    '/api/admin/moderate',
+    '/api/admin/settings',
+    // 👆 указываем конкретные защищённые API-роуты, без /api/admin/session
   ],
 };
+
