@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase';
+
+export const runtime = 'nodejs'; // гарантируем server runtime
 
 export async function POST(req: Request) {
   try {
@@ -8,7 +10,7 @@ export async function POST(req: Request) {
 
     // Honeypot
     if (website) {
-      return NextResponse.json({ ok: true }); // silently ignore
+      return NextResponse.json({ ok: true });
     }
 
     if (!name || !(phone || email)) {
@@ -17,6 +19,9 @@ export async function POST(req: Request) {
 
     const userAgent = req.headers.get('user-agent') ?? null;
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+
+    // Ленивая инициализация — упадёт здесь только при реальном вызове, а не на сборке
+    const supabaseAdmin = getSupabaseAdmin();
 
     const { error } = await supabaseAdmin
       .from('leads')
@@ -28,6 +33,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ ok: true });
   } catch (e: any) {
+    // Если ENV не заданы — будет понятная ошибка
     return NextResponse.json({ ok: false, error: e?.message ?? 'Unknown error' }, { status: 500 });
   }
 }
