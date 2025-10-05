@@ -5,7 +5,7 @@ type Form = {
   name: string;
   phone: string;
   message: string;
-  website?: string; // honeypot
+  website?: string; // honeypot для защиты от спама
 };
 
 export default function LeadForm({ compact = false }: { compact?: boolean }) {
@@ -28,10 +28,16 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
       const res = await fetch('/api/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, source: 'landing' })
+        body: JSON.stringify({
+          name: form.name,
+          phone: form.phone,
+          comment: form.message, // 👈 кладём в comment, как в БД
+          website: form.website, // honeypot-поле
+        }),
       });
+
       const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Ошибка');
+      if (!res.ok || !data.ok) throw new Error(data.error || 'Ошибка отправки');
       setDone(true);
     } catch (err: any) {
       setError(err.message || 'Ошибка отправки');
@@ -71,17 +77,18 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
           />
         </div>
       </div>
+
       <div>
         <label className="label">Коротко о ситуации</label>
         <textarea
           className="input min-h-[100px]"
           value={form.message}
           onChange={e => setForm({ ...form, message: e.target.value })}
-          placeholder="Что случилось? Сумма? С кем спор?"
+          placeholder="Опишите проблему или вопрос"
         />
       </div>
 
-      {/* Honeypot */}
+      {/* honeypot */}
       <div className="hidden">
         <label>Ваш сайт</label>
         <input
@@ -95,6 +102,7 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
       <button className="btn btn-primary w-full" disabled={loading}>
         {loading ? 'Отправляем…' : 'Отправить заявку'}
       </button>
+
       <p className="text-xs text-gray-500">
         Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.
       </p>
