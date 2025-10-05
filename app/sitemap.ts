@@ -1,32 +1,32 @@
-import { MetadataRoute } from 'next'
+import type { MetadataRoute } from 'next'
+import { getSiteBaseUrl } from '@/lib/site'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000').replace(/\/+$/, '')
+  const base = getSiteBaseUrl()
 
-  // В sitemap не добавляем якоря типа /#services — поисковикам они не нужны.
   return [
     {
       url: `${base}/`,
       lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      changeFrequency: 'weekly',
       priority: 1.0,
     },
     {
       url: `${base}/policy`,
       lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
+      changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
       url: `${base}/offer`,
       lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
+      changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
       url: `${base}/consent`,
       lastModified: new Date(),
-      changeFrequency: 'yearly' as const,
+      changeFrequency: 'yearly',
       priority: 0.4,
     },
   ]
