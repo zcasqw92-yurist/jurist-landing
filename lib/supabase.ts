@@ -1,19 +1,31 @@
 import { createClient } from '@supabase/supabase-js';
 
-const get = (k: string) => process.env[k]?.trim();
+// Ленивая инициализация, без кэша fetch
+export function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  if (!url || !serviceRole) throw new Error('Supabase admin env is missing');
 
-const url = () => get('NEXT_PUBLIC_SUPABASE_URL') ?? get('SUPABASE_URL');
-const anon = () => get('NEXT_PUBLIC_SUPABASE_ANON_KEY') ?? get('SUPABASE_ANON_KEY');
-const service = () => get('SUPABASE_SERVICE_ROLE_KEY') ?? get('SUPABASE_SERVICE_ROLE');
+  // ВАЖНО: cache: 'no-store' — запрет кэширования ответов
+  const client = createClient(url, serviceRole, {
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
+  });
 
-export function getSupabaseClient() {
-  const u = url(), a = anon();
-  if (!u || !a) throw new Error('Supabase client env missing');
-  return createClient(u, a);
+  return client;
 }
 
-export function getSupabaseAdmin() {
-  const u = url(), s = service();
-  if (!u || !s) throw new Error('Supabase admin env missing');
-  return createClient(u, s);
+export function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+  if (!url || !anon) throw new Error('Supabase client env is missing');
+
+  const client = createClient(url, anon, {
+    global: {
+      fetch: (input, init) => fetch(input, { ...init, cache: 'no-store' }),
+    },
+  });
+
+  return client;
 }
