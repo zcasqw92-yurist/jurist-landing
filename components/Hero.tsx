@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { getSupabaseAdmin } from "@/lib/supabase";
 
-export const revalidate = 3; // обновление каждые 3 секунд (ISR)
+export const dynamic = 'force-dynamic'; // обновление мнгновенно (ISR)
 
 export default async function Hero() {
   const supabase = getSupabaseAdmin();
