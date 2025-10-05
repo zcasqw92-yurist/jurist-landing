@@ -1,3 +1,5 @@
+export const runtime = 'nodejs'; // 👈 обязательно
+
 import { NextResponse, NextRequest } from 'next/server';
 import { createHmac } from 'crypto';
 
@@ -10,7 +12,7 @@ function sign(val: string, secret: string) {
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Разрешаем публичные страницы и API
+  // 🔹 Public routes
   const publicPaths = [
     '/', '/privacy', '/offer', '/contacts',
     '/api/leads', '/api/reviews', '/api/_env'
@@ -19,14 +21,22 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Разрешаем страницу логина
-  if (pathname.startsWith('/admin/login')) return NextResponse.next();
+  // 🔹 Allow login page
+  if (pathname.startsWith('/admin/login')) {
+    return NextResponse.next();
+  }
 
-  // Всё остальное под /admin и /api/admin — только для авторизованного админа
+  // 🔹 Protect admin routes
   if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    const secret = process.env.ADMIN_PASSWORD;
+    if (!secret) {
+      console.error('ADMIN_PASSWORD not set in environment');
+      return NextResponse.next();
+    }
+
     const cookie = req.cookies.get(ADMIN_COOKIE)?.value;
-    const secret = process.env.ADMIN_PASSWORD || '';
-    const ok = !!cookie && secret && cookie === sign('ok', secret);
+    const ok = !!cookie && cookie === sign('ok', secret);
+
     if (!ok) {
       const url = req.nextUrl.clone();
       url.pathname = '/admin/login';
@@ -43,7 +53,5 @@ export const config = {
     '/admin/:path*',
     '/api/admin/moderate',
     '/api/admin/settings',
-    // 👆 указываем конкретные защищённые API-роуты, без /api/admin/session
   ],
 };
-
