@@ -4,13 +4,12 @@ import { useState } from 'react';
 type Form = {
   name: string;
   phone: string;
-  email: string;
   message: string;
   website?: string; // honeypot
 };
 
 export default function LeadForm({ compact = false }: { compact?: boolean }) {
-  const [form, setForm] = useState<Form>({ name: '', phone: '', email: '', message: '' });
+  const [form, setForm] = useState<Form>({ name: '', phone: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,10 +18,11 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
     e.preventDefault();
     setError(null);
 
-    if (!form.name || (!form.phone && !form.email)) {
-      setError('Укажите имя и телефон или email');
+    if (!form.name || !form.phone) {
+      setError('Укажите имя и телефон');
       return;
     }
+
     setLoading(true);
     try {
       const res = await fetch('/api/leads', {
@@ -54,38 +54,50 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
       <div className={compact ? 'grid grid-cols-1 gap-3' : 'grid md:grid-cols-2 gap-4'}>
         <div>
           <label className="label">Имя *</label>
-          <input className="input" value={form.name}
-            onChange={e => setForm({ ...form, name: e.target.value })} placeholder="Как к вам обращаться" />
+          <input
+            className="input"
+            value={form.name}
+            onChange={e => setForm({ ...form, name: e.target.value })}
+            placeholder="Как к вам обращаться"
+          />
         </div>
         <div>
-          <label className="label">Телефон</label>
-          <input className="input" value={form.phone}
-            onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="+7 (___) ___-__-__" />
+          <label className="label">Телефон *</label>
+          <input
+            className="input"
+            value={form.phone}
+            onChange={e => setForm({ ...form, phone: e.target.value })}
+            placeholder="+7 (___) ___-__-__"
+          />
         </div>
-      </div>
-      <div>
-        <label className="label">Email</label>
-        <input className="input" type="email" value={form.email}
-          onChange={e => setForm({ ...form, email: e.target.value })} placeholder="name@mail.ru" />
       </div>
       <div>
         <label className="label">Коротко о ситуации</label>
-        <textarea className="input min-h-[100px]" value={form.message}
-          onChange={e => setForm({ ...form, message: e.target.value })} placeholder="Что случилось? Сумма? С кем спор?" />
+        <textarea
+          className="input min-h-[100px]"
+          value={form.message}
+          onChange={e => setForm({ ...form, message: e.target.value })}
+          placeholder="Что случилось? Сумма? С кем спор?"
+        />
       </div>
 
       {/* Honeypot */}
       <div className="hidden">
         <label>Ваш сайт</label>
-        <input value={form.website || ''} onChange={e => setForm({ ...form, website: e.target.value })} />
+        <input
+          value={form.website || ''}
+          onChange={e => setForm({ ...form, website: e.target.value })}
+        />
       </div>
 
       {error && <p className="text-red-600 text-sm">{error}</p>}
 
-      <button className={compact ? 'btn btn-primary w-full' : 'btn btn-primary w-full'} disabled={loading}>
+      <button className="btn btn-primary w-full" disabled={loading}>
         {loading ? 'Отправляем…' : 'Отправить заявку'}
       </button>
-      <p className="text-xs text-gray-500">Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.</p>
+      <p className="text-xs text-gray-500">
+        Нажимая кнопку, вы соглашаетесь с обработкой персональных данных.
+      </p>
     </form>
   );
 }
