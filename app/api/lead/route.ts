@@ -1,20 +1,33 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
+import { supabaseServer } from '@/lib/supabase';
 
-export async function POST(req: NextRequest){
-  const data = await req.formData()
-  const name = (data.get('name') || '').toString().slice(0, 200)
-  const phone = (data.get('phone') || '').toString().slice(0, 100)
-  const message = (data.get('message') || '').toString().slice(0, 1000)
-  const website = (data.get('website') || '').toString()
+// Работать на Node проще (env не теряются)
+export const runtime = 'nodejs';
 
-  // Simple honeypot check
-  if (website) {
-    return NextResponse.json({ ok: true })
+function sanitize(s: unknown) {
+  return typeof s === 'string' ? s.trim().slice(0, 500) : '';
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json().catch(() => ({}));
+    const name = sanitize(body.name);
+    const phone = sanitize(body.phone);
+    const comment = sanitize(body.comment);
+
+    if (!name || !phone) {
+      return NextResponse.json({ ok: false, error: 'Укажите имя и телефон' }, { status: 400 });
+    }
+
+    const { error } = await supabaseServer.from('leads').insert({ name, phone, comment });
+    if (error) {
+      console.error('INSERT ERROR:', error.message);
+      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (e: any) {
+    console.error('API /api/leads failed:', e?.message || e);
+    return NextResponse.json({ ok: false, error: e?.message ?? 'Server error' }, { status: 500 });
   }
-
-  // Here you can forward to email/CRM/Telegram bot via a webhook.
-  // For now, we just log on the server and return success.
-  console.log('New lead:', { name, phone, message, ts: new Date().toISOString() })
-
-  return NextResponse.redirect(new URL('/?sent=1', req.url), { status: 303 })
 }
