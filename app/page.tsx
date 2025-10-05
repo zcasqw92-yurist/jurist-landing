@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'; // мгновенное обновление всех секций
+
 import Hero from '@/components/Hero';
 import Services from '@/components/Services';
 import RecentCases from '@/components/RecentCases';
