@@ -1,6 +1,6 @@
 import LeadForm from "./components/LeadForm";
 
-// В NEXT 15 searchParams — Promise. Делаем компонент async и "await" внутри.
+// Next 15: searchParams is a Promise
 export default async function HomePage({
   searchParams,
 }: {
@@ -63,7 +63,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* КЕЙСЫ (пример-заглушка) */}
+      {/* КЕЙСЫ */}
       <section className="py-14 bg-gray-50">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-2xl font-semibold">Недавние кейсы</h2>
@@ -90,7 +90,7 @@ export default async function HomePage({
         </div>
       </section>
 
-      {/* FAQ (пример-заглушка) */}
+      {/* FAQ */}
       <section className="py-14">
         <div className="max-w-6xl mx-auto px-6">
           <h2 className="text-2xl font-semibold">Частые вопросы</h2>
