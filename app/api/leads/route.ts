@@ -1,6 +1,6 @@
 // app/api/leads/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { supabaseServer } from "@/lib/supabase";
+import { supabaseServer } from "../../../lib/supabase";
 
 export const runtime = "nodejs"; // service_role работает только в Node runtime
 
