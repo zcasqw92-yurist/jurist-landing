@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { trackLead } from '@/lib/analytics';
 
 type Form = {
   name: string;
@@ -8,17 +9,47 @@ type Form = {
   website?: string; // honeypot для защиты от спама
 };
 
+type Utms = {
+  utm_source?: string | null;
+  utm_medium?: string | null;
+  utm_campaign?: string | null;
+  utm_content?: string | null;
+  utm_term?: string | null;
+  referrer?: string | null;
+  page?: string | null;
+};
+
 export default function LeadForm({ compact = false }: { compact?: boolean }) {
   const [form, setForm] = useState<Form>({ name: '', phone: '', message: '' });
+  const [utms, setUtms] = useState<Utms>({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Собираем UTM-метки и системные поля при монтировании
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+    setUtms({
+      utm_source: sp.get('utm_source'),
+      utm_medium: sp.get('utm_medium'),
+      utm_campaign: sp.get('utm_campaign'),
+      utm_content: sp.get('utm_content'),
+      utm_term: sp.get('utm_term'),
+      referrer: document.referrer || null,
+      page: window.location.pathname + window.location.search,
+    });
+  }, []);
+
+  // Нормализуем телефон (только цифры) — на бэке всё равно валидируй
+  const normalizedPhone = useMemo(() => form.phone.replace(/[^\d+]/g, ''), [form.phone]);
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return;
     setError(null);
 
-    if (!form.name || !form.phone) {
+    if (!form.name.trim() || !normalizedPhone) {
       setError('Укажите имя и телефон');
       return;
     }
@@ -29,18 +60,25 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: form.name,
-          phone: form.phone,
-          comment: form.message, // 👈 кладём в comment, как в БД
-          website: form.website, // honeypot-поле
+          name: form.name.trim(),
+          phone: normalizedPhone,
+          comment: form.message?.trim() || '',
+          website: form.website, // honeypot
+          ...utms,               // UTM + referrer + page
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error || 'Ошибка отправки');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || 'Ошибка отправки');
+      }
+
+      // аналитика
+      trackLead();
+
       setDone(true);
     } catch (err: any) {
-      setError(err.message || 'Ошибка отправки');
+      setError(err?.message || 'Ошибка отправки');
     } finally {
       setLoading(false);
     }
@@ -59,28 +97,40 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
     <form onSubmit={onSubmit} className={compact ? 'space-y-3' : 'space-y-4'}>
       <div className={compact ? 'grid grid-cols-1 gap-3' : 'grid md:grid-cols-2 gap-4'}>
         <div>
-          <label className="label">Имя *</label>
+          <label className="label" htmlFor="lead-name">Имя *</label>
           <input
+            id="lead-name"
+            name="name"
             className="input"
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
             placeholder="Как к вам обращаться"
+            autoComplete="name"
+            required
           />
         </div>
         <div>
-          <label className="label">Телефон *</label>
+          <label className="label" htmlFor="lead-phone">Телефон *</label>
           <input
+            id="lead-phone"
+            name="phone"
+            type="tel"
             className="input"
             value={form.phone}
             onChange={e => setForm({ ...form, phone: e.target.value })}
             placeholder="+7 (___) ___-__-__"
+            autoComplete="tel"
+            inputMode="tel"
+            required
           />
         </div>
       </div>
 
       <div>
-        <label className="label">Коротко о ситуации</label>
+        <label className="label" htmlFor="lead-message">Коротко о ситуации</label>
         <textarea
+          id="lead-message"
+          name="message"
           className="input min-h-[100px]"
           value={form.message}
           onChange={e => setForm({ ...form, message: e.target.value })}
@@ -89,11 +139,15 @@ export default function LeadForm({ compact = false }: { compact?: boolean }) {
       </div>
 
       {/* honeypot */}
-      <div className="hidden">
-        <label>Ваш сайт</label>
+      <div className="hidden" aria-hidden="true">
+        <label htmlFor="lead-website">Ваш сайт</label>
         <input
+          id="lead-website"
+          name="website"
           value={form.website || ''}
           onChange={e => setForm({ ...form, website: e.target.value })}
+          tabIndex={-1}
+          autoComplete="off"
         />
       </div>
 
